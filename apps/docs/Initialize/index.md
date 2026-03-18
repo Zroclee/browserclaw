@@ -52,25 +52,10 @@ pnpm add turbo --save-dev --workspace-root
 
 ## 应用初始化
 
-1. 创建应用目录
-```bash
-mkdir apps/gateway
-```
-2. 初始化应用项目
-```bash
-cd apps/gateway
-pnpm init
-```
-pnpm run build
-
-node dist/server.js
-
-lsof -i:3000
-# 输出
-# COMMAND  PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
-# node     12345 zroc   13u  IPv4  12345      0t0  TCP *:3000 (LISTEN)
-
-kill -9 12345
+1. gateway 应用初始化
+初始化过程请查看[gateway.md](gateway.md)
+2. core 应用初始化
+初始化过程请查看[core.md](core.md)
 
 
 

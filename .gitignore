@@ -140,3 +140,4 @@ vite.config.ts.timestamp-*
 
 # turbo cache
 .turbo
+.DS_Store
