@@ -1,0 +1,16 @@
+{
+  "name": "browserclaw",
+  "version": "1.0.0",
+  "description": "个人专属浏览器AI助手",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.30.3",
+  "devDependencies": {
+    "turbo": "^2.8.17"
+  }
+}
