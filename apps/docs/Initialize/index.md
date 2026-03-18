@@ -56,6 +56,8 @@ pnpm add turbo --save-dev --workspace-root
 初始化过程请查看[gateway.md](gateway.md)
 2. core 应用初始化
 初始化过程请查看[core.md](core.md)
+3. docs 应用初始化
+初始化过程请查看[docs.md](docs.md)
 
 
 
