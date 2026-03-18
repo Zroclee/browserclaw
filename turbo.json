@@ -5,6 +5,9 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".vite/**"]
     },
+    "docs#build": {
+      "outputs": []
+    },
     "dev": {
       "persistent": true,
       "cache": false
