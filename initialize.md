@@ -61,6 +61,16 @@ mkdir apps/gateway
 cd apps/gateway
 pnpm init
 ```
+pnpm run build
+
+node dist/server.js
+
+lsof -i:3000
+# 输出
+# COMMAND  PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+# node     12345 zroc   13u  IPv4  12345      0t0  TCP *:3000 (LISTEN)
+
+kill -9 12345
 
 
 
