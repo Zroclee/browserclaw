@@ -8,6 +8,7 @@ export default defineConfig({
 				index: path.resolve(__dirname, "src/index.ts"),
 				playwright: path.resolve(__dirname, "src/playwright/index.ts"),
 				fileManager: path.resolve(__dirname, "src/fileManager/index.ts"),
+				agents: path.resolve(__dirname, "src/agents/index.ts"),
 			},
 			name: "@browserclaw/core",
 			formats: ["es", "cjs"],

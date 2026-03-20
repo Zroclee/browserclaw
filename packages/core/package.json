@@ -21,6 +21,12 @@
       "import": "./src/fileManager/index.ts",
       "require": "./src/fileManager/index.ts",
       "default": "./src/fileManager/index.ts"
+    },
+    "./agents": {
+      "types": "./src/agents/index.ts",
+      "import": "./src/agents/index.ts",
+      "require": "./src/agents/index.ts",
+      "default": "./src/agents/index.ts"
     }
   },
   "scripts": {
