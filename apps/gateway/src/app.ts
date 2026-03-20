@@ -27,9 +27,9 @@ app.use("/chat", chatRouter);
 
 // 静态文件服务：将 Vue 打包后的 dist 目录挂载到根路径
 // 注意：生产环境才使用静态文件服务，开发时通常由 Vite 自己处理
-// if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production") {
   // 静态资源存放在 src/static（Web 构建后复制过来）
   app.use("/web", express.static(path.join(__dirname, "../src/static")));
-// }
+}
 
 export default app;

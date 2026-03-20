@@ -57,20 +57,14 @@ program
 
     const pid = parseInt(fs.readFileSync(PID_FILE, 'utf-8'), 10);
     try {
-      // 使用负数 PID 来杀死整个进程组（包括网关服务以及它派生的浏览器子进程）
-      process.kill(-pid, 'SIGTERM');
-      console.log(`已成功关闭网关服务及其相关子进程 (进程组: ${pid})`);
+      // 尝试终止进程
+      process.kill(pid, 'SIGTERM');
+      console.log(`已成功关闭网关服务 (PID: ${pid})`);
     } catch (error) {
       if (error.code === 'ESRCH') {
-        console.log(`网关服务及其子进程 (进程组: ${pid}) 已经停止。`);
+        console.log(`网关服务 (PID: ${pid}) 已经停止。`);
       } else {
-        // 如果进程组杀手锏失败，降级为只杀主进程
-        try {
-          process.kill(pid, 'SIGTERM');
-          console.log(`已成功关闭网关主服务进程 (PID: ${pid})`);
-        } catch (fallbackError) {
-          console.error(`无法关闭进程 ${pid}:`, error.message);
-        }
+        console.error(`无法关闭进程 ${pid}:`, error.message);
       }
     } finally {
       // 无论如何，都清理 PID 文件
