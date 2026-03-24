@@ -1,6 +1,6 @@
 {
   "name": "zrocclaw",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "个人专属浏览器AI助手命令行工具",
   "bin": {
     "zrocclaw": "bin/zrocclaw.js"
