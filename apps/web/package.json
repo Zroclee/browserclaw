@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build && rm -rf ../gateway/src/static && cp -R dist ../gateway/src/static",
+    "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
   },
   "peerDependencies": {

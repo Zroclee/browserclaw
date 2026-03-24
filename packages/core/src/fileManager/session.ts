@@ -1,4 +1,4 @@
-import { getConfigPath } from '@zrocclaw/core/fileManager';
+import { getConfigPath } from './manager';
 import fs from 'fs';
 import path from 'path';
 
@@ -56,6 +56,7 @@ class SessionModel {
   }
 
   public getSessionId(): string | null {
+    this.load();
     return this.data.sessionId;
   }
 
@@ -65,6 +66,7 @@ class SessionModel {
   }
 
   public getSessionData(): Record<string, any> {
+    this.load();
     return this.data.sessionData;
   }
 

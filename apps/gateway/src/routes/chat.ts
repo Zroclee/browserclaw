@@ -4,7 +4,7 @@ import { getConfigPath } from '@zrocclaw/core/fileManager';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
-import sessionModel from '../models/session';
+import { sessionModel } from '@zrocclaw/core/fileManager';
 
 const configDir = getConfigPath();
 const configFilePath = path.join(configDir, 'model.json');

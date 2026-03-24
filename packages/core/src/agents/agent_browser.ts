@@ -1,7 +1,8 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { createAgent, createMiddleware } from "langchain";
+import { createAgent } from "langchain";
 import { HumanMessage } from "@langchain/core/messages";
 import { MemorySaver } from "@langchain/langgraph";
+import memoryMiddleware from "./memory";
 import { getCurrentTimeTool } from "./tools/common";
 import {
   createFileTool,
@@ -37,16 +38,6 @@ const getModel = (modelConfig: ModelConfig) => {
 
 const checkpointer = new MemorySaver();
 
-const memoryMiddleware = createMiddleware({
-  name: "MemoryMiddleware",
-  beforeAgent: async ({ messages }) => {
-    console.log('beforeAgent', messages);
-  },
-  afterAgent: async ({ messages }) => {
-    console.log('afterAgent', messages);
-  },
-});
-
 
 const streamInvoke = async function* (
   query: string,
@@ -75,6 +66,7 @@ const streamInvoke = async function* (
       { messages: [new HumanMessage(query)] },
       {
         streamMode: ["messages", "updates"],
+        "recursionLimit": 100,
         configurable: { thread_id: thread_id },
       },
     );

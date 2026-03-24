@@ -12,8 +12,8 @@ export default defineConfig({
     {
       name: 'copy-dist-to-gateway',
       closeBundle() {
-        console.log('Copying dist to gateway static folder...');
-        execSync('rm -rf ../gateway/src/static && cp -R dist ../gateway/src/static', { stdio: 'inherit' });
+        console.log('Copying dist to cli server static folder...');
+        execSync('rm -rf ../cli/server/static && cp -R dist ../cli/server/static', { stdio: 'inherit' });
       },
     },
   ],
