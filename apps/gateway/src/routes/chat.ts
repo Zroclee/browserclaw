@@ -64,4 +64,29 @@ router.get('/session', (req, res) => {
   res.json({ sessionId });
 });
 
+router.post('/history', (req, res) => {
+  const { sessionId } = req.body;
+  if (!sessionId) {
+    return res.status(400).json({ error: "Missing sessionId" });
+  }
+  
+  const data = sessionModel.getSessionData();
+  res.json({ data });
+});
+
+router.post('/history/add', (req, res) => {
+  const { sessionId, id, role, content, ...rest } = req.body;
+  if (!sessionId) {
+    return res.status(400).json({ error: "Missing sessionId" });
+  }
+  if (!id || !role || !content) {
+    return res.status(400).json({ error: "Missing required SessionDataItem fields (id, role, content)" });
+  }
+
+  const item = { id, role, content, ...rest };
+  sessionModel.addSessionItem(item);
+  
+  res.json({ success: true });
+});
+
 export default router;

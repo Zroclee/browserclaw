@@ -59,6 +59,33 @@ const fetchSessionId = async (isNew: boolean = false) => {
   }
 };
 
+// 获取历史记录
+const fetchHistory = async () => {
+  if (!curChatId.value) return;
+  try {
+    const res: any = await request.post('/chat/history', { sessionId: curChatId.value });
+    if (res && Array.isArray(res.data)) {
+      messages.value = res.data;
+      scrollToBottom();
+    }
+  } catch (error) {
+    console.error('获取历史记录失败:', error);
+  }
+};
+
+// 添加历史记录
+const addHistoryItem = async (msg: Message) => {
+  if (!curChatId.value) return;
+  try {
+    await request.post('/chat/history/add', {
+      sessionId: curChatId.value,
+      ...msg
+    });
+  } catch (error) {
+    console.error('添加历史记录失败:', error);
+  }
+};
+
 // 发起真实流式请求
 const connectSSE = async (query: string) => {
   if (abortController.value) {
@@ -137,11 +164,13 @@ const connectSSE = async (query: string) => {
             case "stream_end":
               console.log("🏁 流结束:", data.content);
               closeSSE();
+              addHistoryItem(currentMsg);
               break;
             case "error":
               console.error("❌ 错误:", data.content);
               currentMsg.content += `\n\n[出错: ${data.content}]`;
               closeSSE();
+              addHistoryItem(currentMsg);
               break;
             default:
               break;
@@ -188,11 +217,13 @@ const handleSubmit = async (text: string) => {
 
   // 1. 添加用户消息
   const userMsgId = generateId();
-  messages.value.push({
+  const userMsg: Message = {
     id: userMsgId,
     role: 'user',
     content: text
-  });
+  };
+  messages.value.push(userMsg);
+  addHistoryItem(userMsg);
   
   inputValue.value = ''; // 清空输入框
   scrollToBottom();
@@ -204,7 +235,10 @@ const handleSubmit = async (text: string) => {
 // 初始化欢迎消息
 onMounted(async () => {
   await fetchSessionId();
+  await fetchHistory();
 });
+
+
 </script>
 
 <template>

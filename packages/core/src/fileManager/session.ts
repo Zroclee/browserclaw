@@ -2,9 +2,15 @@ import { getConfigPath } from './manager';
 import fs from 'fs';
 import path from 'path';
 
+export interface SessionDataItem extends Record<string, any> {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 interface SessionData {
   sessionId: string | null;
-  sessionData: Record<string, any>;
+  sessionData: SessionDataItem[];
 }
 
 class SessionModel {
@@ -16,7 +22,7 @@ class SessionModel {
     this.filePath = path.join(getConfigPath(), 'session.json');
     this.data = {
       sessionId: null,
-      sessionData: {},
+      sessionData: [],
     };
     this.load();
   }
@@ -33,7 +39,10 @@ class SessionModel {
       try {
         const fileContent = fs.readFileSync(this.filePath, 'utf-8');
         const parsed = JSON.parse(fileContent);
-        this.data = { ...this.data, ...parsed };
+        this.data = {
+          sessionId: parsed.sessionId ?? this.data.sessionId,
+          sessionData: Array.isArray(parsed.sessionData) ? parsed.sessionData : [],
+        };
       } catch (error) {
         console.error('Failed to parse session.json:', error);
       }
@@ -61,17 +70,21 @@ class SessionModel {
   }
 
   public setSessionId(id: string | null): void {
+    if (this.data.sessionId !== id) {
+      this.data.sessionData = [];
+    }
     this.data.sessionId = id;
     this.save();
   }
 
-  public getSessionData(): Record<string, any> {
+  public getSessionData(): SessionDataItem[] {
     this.load();
     return this.data.sessionData;
   }
 
-  public setSessionData(data: Record<string, any>): void {
-    this.data.sessionData = data;
+  public addSessionItem(item: SessionDataItem): void {
+    this.load();
+    this.data.sessionData.push(item);
     this.save();
   }
 }
