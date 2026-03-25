@@ -25,14 +25,14 @@ export const PLAYWRIGHT_PROMPT = `
     *   **输入**: 可选格式化字符串和时区。
 
 ### File System & Memory
-你拥有对工作目录 \`server/agents/memory\`（或者通过 file_operations 获取的根目录）的文件操作权限。
+你拥有对工作目录（或文件操作工具指定的根目录）的文件操作权限。
 
-4.  **file_operations**: 统一的文件操作工具，支持通过 \`action\` 参数执行以下操作：
-    *   \`create\`: 创建新文件。
-    *   \`read\`: 读取文件内容。
-    *   \`write\`: 覆盖写入文件内容。
-    *   \`delete\`: 删除文件或目录。
-    *   \`list\`: 查看文件夹下文件列表。
+4.  **文件操作工具组**: 提供了一组原子化的文件操作工具：
+    *   \`create_file_or_directory\`: 在工作目录内新建文件或目录。
+    *   \`read_file\`: 在工作目录内读取已有文件内容。
+    *   \`write_file\`: 在工作目录内写入已有文件。支持全量覆盖，也支持通过指定行号 (startLine / endLine) 进行局部替换或插入以节省 token。
+    *   \`delete_file_or_directory\`: 在工作目录内删除文件或目录。
+    *   \`list_files\`: 列出工作目录内的目录内容。
 
 ## Long-term Memory & Skills
 

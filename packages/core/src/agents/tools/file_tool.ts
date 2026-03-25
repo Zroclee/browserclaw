@@ -102,14 +102,36 @@ export const readFileTool = tool(
 );
 
 export const writeFileTool = tool(
-  async ({ filePath, content }) => {
+  async ({ filePath, content, startLine, endLine }) => {
     const targetPath = resolveSafePath(filePath);
     try {
       const stat = await fs.stat(targetPath);
       if (!stat.isFile()) {
         throw new Error('目标路径不是文件');
       }
-      await fs.writeFile(targetPath, content || '', { encoding: 'utf-8' });
+
+      if (startLine !== undefined) {
+        // 增量/局部修改模式
+        const fileContent = await fs.readFile(targetPath, 'utf-8');
+        const lines = fileContent.split('\n');
+
+        const startIdx = Math.max(0, startLine - 1);
+        let deleteCount = 1;
+        
+        if (endLine !== undefined) {
+          const endIdx = endLine - 1;
+          deleteCount = Math.max(0, endIdx - startIdx + 1);
+        }
+
+        const contentLines = content.split('\n');
+        lines.splice(startIdx, deleteCount, ...contentLines);
+
+        await fs.writeFile(targetPath, lines.join('\n'), { encoding: 'utf-8' });
+      } else {
+        // 全量覆盖模式
+        await fs.writeFile(targetPath, content || '', { encoding: 'utf-8' });
+      }
+
       return JSON.stringify({
         success: true,
         operation: 'write_file',
@@ -126,10 +148,12 @@ export const writeFileTool = tool(
   },
   {
     name: 'write_file',
-    description: '在工作目录内覆盖写入已有文件。注意：filePath必须是相对工作目录的路径。',
+    description: '在工作目录内写入已有文件。可以全量覆盖，也可以指定行号进行局部替换/插入以节省 token。注意：filePath必须是相对工作目录的路径。',
     schema: z.object({
       filePath: z.string().describe('相对工作目录的文件路径'),
-      content: z.string().describe('要写入的文件内容'),
+      content: z.string().describe('要写入或插入的文件内容'),
+      startLine: z.number().optional().describe('起始行号（从1开始）。如果提供此参数，则在指定行进行局部替换或插入。如果未提供，则全量覆盖文件。'),
+      endLine: z.number().optional().describe('结束行号（从1开始，包含该行）。如果提供此参数，将把从 startLine 到 endLine 的内容替换为新 content；如果仅提供 startLine，则仅替换该行；如果要在某行前单纯插入而不删除原内容，可将 endLine 设为 startLine - 1。'),
     }),
   }
 );
