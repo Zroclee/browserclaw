@@ -10,6 +10,14 @@
 
 ZrocClaw 提供了便捷的命令行工具，支持一键安装与启停服务。详细的命令说明与日志排查请参考 [CLI 文档](./apps/cli/README.md)。
 
+### 前置条件
+
+在安装和使用 ZrocClaw 之前，请确保您的系统满足以下要求：
+
+- **Node.js**: 版本需 **>= 22.0.0**。
+- **包管理器**: `npm`（Node.js 自带）或 `pnpm`。
+- **浏览器**: 需在本地安装 **Google Chrome** 或 Chromium 浏览器（用于支持底层 Playwright 浏览器自动化与自我学习能力）。
+
 ### 安装
 
 推荐全局安装 ZrocClaw 命令行工具：
