@@ -88,3 +88,13 @@ export function getHistoryPath(subPath?: string): string {
   const historyPath = path.join(getConfigPath(), 'history');
   return resolveAndEnsurePath(historyPath, subPath);
 }
+
+/**
+ * 获取技能目录 (~/.zrocclaw/workspace/skills)
+ * @param subPath 可选的子路径，用于拼接在 skills 目录下
+ * @returns 完整的技能文件或目录路径
+ */
+export function getSkillsPath(subPath?: string): string {
+  const skillsPath = path.join(getWorkspacePath(), 'skills');
+  return resolveAndEnsurePath(skillsPath, subPath);
+}

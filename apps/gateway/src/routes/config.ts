@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getConfigPath } from '@zrocclaw/core/fileManager';
+import { getConfigPath, getWorkspacePath, getSkillsPath } from '@zrocclaw/core/fileManager';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
@@ -11,13 +11,13 @@ router.get('/', (req, res) => {
 });
 
 const configDir = getConfigPath();
-const configFilePath = path.join(configDir, 'model.json');
+const configModelPath = path.join(configDir, 'model.json');
 
 // 辅助方法：读取和写入配置文件
 async function readModelConfig() {
   try {
-    await fs.access(configFilePath);
-    const data = await fs.readFile(configFilePath, 'utf-8');
+    await fs.access(configModelPath);
+    const data = await fs.readFile(configModelPath, 'utf-8');
     return JSON.parse(data);
   } catch (error: any) {
     if (error.code === 'ENOENT') {
@@ -29,7 +29,7 @@ async function readModelConfig() {
 
 async function writeModelConfig(config: any) {
   await fs.mkdir(configDir, { recursive: true });
-  await fs.writeFile(configFilePath, JSON.stringify(config, null, 2), 'utf-8');
+  await fs.writeFile(configModelPath, JSON.stringify(config, null, 2), 'utf-8');
 }
 
 // 4. 查询接口 get
@@ -175,6 +175,177 @@ router.post('/model/default', async (req, res) => {
   } catch (error) {
     console.error('设置默认模型失败:', error);
     res.status(500).json({ error: '设置默认模型失败' });
+  }
+});
+
+const workspaceDir = getWorkspacePath();
+const workspaceSkillsPath = path.join(workspaceDir, 'SKILLS.json');
+const skillsDir = getSkillsPath();
+
+// 辅助方法：读取和写入技能配置文件
+async function readSkillsConfig() {
+  try {
+    await fs.access(workspaceSkillsPath);
+    const data = await fs.readFile(workspaceSkillsPath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error: any) {
+    if (error.code === 'ENOENT') {
+      return [];
+    }
+    throw error;
+  }
+}
+
+async function writeSkillsConfig(config: any) {
+  await fs.mkdir(workspaceDir, { recursive: true });
+  await fs.writeFile(workspaceSkillsPath, JSON.stringify(config, null, 2), 'utf-8');
+}
+
+// 1. 获取技能列表接口 get
+router.get('/skills', async (req, res) => {
+  try {
+    try {
+      await fs.access(workspaceSkillsPath);
+    } catch (e: any) {
+      if (e.code === 'ENOENT') {
+        await writeSkillsConfig([]);
+        return res.json([]);
+      }
+    }
+    const config = await readSkillsConfig();
+    res.json(config);
+  } catch (error) {
+    console.error('获取技能列表失败:', error);
+    res.status(500).json({ error: '获取技能列表失败' });
+  }
+});
+
+// 2. 新增技能接口 post
+router.post('/skills', async (req, res) => {
+  try {
+    const { name, summary, content } = req.body;
+    const id = crypto.randomUUID();
+    const newSkill = {
+      id,
+      name,
+      summary,
+      path: `./skills/${id}.md`
+    };
+
+    const skills = await readSkillsConfig();
+    if (!Array.isArray(skills)) {
+      throw new Error('skills.json 格式错误');
+    }
+    
+    skills.unshift(newSkill);
+    await writeSkillsConfig(skills);
+
+    // 保存内容到 markdown 文件
+    await fs.mkdir(skillsDir, { recursive: true });
+    const mdPath = path.join(skillsDir, `${id}.md`);
+    await fs.writeFile(mdPath, content || '', 'utf-8');
+
+    res.json(newSkill);
+  } catch (error) {
+    console.error('新增技能失败:', error);
+    res.status(500).json({ error: '新增技能失败' });
+  }
+});
+
+// 3. 编辑技能接口 post
+router.post('/skills/edit', async (req, res) => {
+  try {
+    const { id, name, summary, content } = req.body;
+    if (!id) {
+      return res.status(400).json({ error: '缺少技能ID' });
+    }
+
+    const skills = await readSkillsConfig();
+    if (!Array.isArray(skills)) {
+      throw new Error('skills.json 格式错误');
+    }
+
+    const index = skills.findIndex((s: any) => s.id === id);
+    if (index === -1) {
+      return res.status(404).json({ error: '技能不存在' });
+    }
+
+    skills[index] = { ...skills[index], name, summary };
+    await writeSkillsConfig(skills);
+
+    // 替换对应的 markdown 文件内容
+    await fs.mkdir(skillsDir, { recursive: true });
+    const mdPath = path.join(skillsDir, `${id}.md`);
+    await fs.writeFile(mdPath, content || '', 'utf-8');
+
+    res.json(skills[index]);
+  } catch (error) {
+    console.error('编辑技能失败:', error);
+    res.status(500).json({ error: '编辑技能失败' });
+  }
+});
+
+// 4. 删除技能接口 post
+router.post('/skills/delete', async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) {
+      return res.status(400).json({ error: '缺少技能ID' });
+    }
+
+    let skills = await readSkillsConfig();
+    if (!Array.isArray(skills)) {
+      throw new Error('skills.json 格式错误');
+    }
+
+    const initialLength = skills.length;
+    skills = skills.filter((s: any) => s.id !== id);
+
+    if (skills.length === initialLength) {
+      return res.status(404).json({ error: '技能不存在' });
+    }
+
+    await writeSkillsConfig(skills);
+
+    // 删除对应的 markdown 文件
+    const mdPath = path.join(skillsDir, `${id}.md`);
+    try {
+      await fs.unlink(mdPath);
+    } catch (e: any) {
+      if (e.code !== 'ENOENT') {
+        console.error('删除技能文件失败:', e);
+      }
+    }
+
+    res.json({ success: true, message: '删除成功' });
+  } catch (error) {
+    console.error('删除技能失败:', error);
+    res.status(500).json({ error: '删除技能失败' });
+  }
+});
+
+// 5. 获取技能详情接口 post
+router.post('/skills/detail', async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) {
+      return res.status(400).json({ error: '缺少技能ID' });
+    }
+
+    const mdPath = path.join(skillsDir, `${id}.md`);
+    try {
+      await fs.access(mdPath);
+      const content = await fs.readFile(mdPath, 'utf-8');
+      res.json({ content });
+    } catch (e: any) {
+      if (e.code === 'ENOENT') {
+        return res.status(404).json({ error: '技能文件不存在' });
+      }
+      throw e;
+    }
+  } catch (error) {
+    console.error('获取技能详情失败:', error);
+    res.status(500).json({ error: '获取技能详情失败' });
   }
 });
 

@@ -24,9 +24,10 @@ type InteractiveElement = {
  * - 元素 text 使用 textContent 或 placeholder 的前 50 字符，作为 LLM 提示上下文
  */
 export const extractPageStateTool = tool(
-  async () => {
+  async (input) => {
+    const includeText = input?.includeText ?? false;
     const p = await playwrightManager.getPage();
-    const elementsMetadata: InteractiveElement[] = await p.evaluate(() => {
+    const evaluateResult = await p.evaluate((includeTextArg) => {
       document
         .querySelectorAll('.ai-label-container')
         .forEach((el) => el.remove());
@@ -45,7 +46,7 @@ export const extractPageStateTool = tool(
         '[role="checkbox"]',
       ];
       const elements = document.querySelectorAll(selectors.join(','));
-      const metadata: InteractiveElement[] = [];
+      const metadata: any[] = [];
       let currentId = 0;
 
       const isInViewport = (rect: DOMRect) =>
@@ -116,21 +117,63 @@ export const extractPageStateTool = tool(
           });
         }
       });
-      return metadata;
-    });
+
+      let viewportText = undefined;
+      if (includeTextArg) {
+        const walker = document.createTreeWalker(
+          document.body,
+          NodeFilter.SHOW_TEXT,
+          null
+        );
+        let node;
+        const textParts: string[] = [];
+        while ((node = walker.nextNode())) {
+          const parent = node.parentElement;
+          const text = node.nodeValue?.trim();
+          if (parent && text) {
+            const tagName = parent.tagName.toLowerCase();
+            if (
+              tagName !== 'script' &&
+              tagName !== 'style' &&
+              tagName !== 'noscript'
+            ) {
+              if (isVisible(parent)) {
+                const rect = parent.getBoundingClientRect();
+                if (isInViewport(rect)) {
+                  textParts.push(text);
+                }
+              }
+            }
+          }
+        }
+        viewportText = Array.from(new Set(textParts)).join('\n');
+      }
+
+      return { metadata, viewportText };
+    }, includeText);
 
     const title = await p.title();
 
     return {
       url: p.url(),
       title,
-      elements: elementsMetadata,
+      elements: evaluateResult.metadata as InteractiveElement[],
+      ...(includeText && evaluateResult.viewportText
+        ? { text: evaluateResult.viewportText }
+        : {}),
     };
   },
   {
     name: 'extract_page_state',
     description:
-      '抓取当前页面的关键交互元素，并输出带编号的元素摘要与上下文摘要',
+      '抓取当前页面的关键交互元素，并输出带编号的元素摘要与上下文摘要。可通过 includeText 参数额外获取视口内的纯文本信息。',
+    schema: z.object({
+      includeText: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe('是否获取当前视口内的纯文本信息'),
+    }),
   },
 );
 

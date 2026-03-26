@@ -31,7 +31,7 @@
     <div class="flex-1 p-6 overflow-y-auto">
       <ModelConfig v-if="currentConfig === 'model'" />
       <ToBeContinue v-else-if="currentConfig === 'scheduler'" title="定时任务" />
-      <ToBeContinue v-else-if="currentConfig === 'skills'" title="技能配置" />
+      <Skills v-else-if="currentConfig === 'skills'" />
       <ToBeContinue v-else-if="currentConfig === 'im'" title="IM渠道" />
     </div>
   </div>
@@ -40,6 +40,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import ModelConfig from '../components/SubConfig/Model.vue';
+import Skills from '../components/SubConfig/Skills.vue';
 import ToBeContinue from '../components/SubConfig/ToBeContinue.vue';
 
 const currentConfig = ref('model');
