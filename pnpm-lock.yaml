@@ -184,6 +184,9 @@ importers:
       langchain:
         specifier: ^1.2.35
         version: 1.2.36(@langchain/core@1.1.35(openai@6.32.0(zod@4.3.6)))(openai@6.32.0(zod@4.3.6))(vue@3.5.30(typescript@5.9.3))
+      node-schedule:
+        specifier: ^2.1.1
+        version: 2.1.1
       playwright:
         specifier: ^1.58.2
         version: 1.58.2
@@ -194,6 +197,9 @@ importers:
       '@types/node':
         specifier: ^25.5.0
         version: 25.5.0
+      '@types/node-schedule':
+        specifier: ^2.1.8
+        version: 2.1.8
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(jiti@2.6.1)(postcss@8.5.8)(typescript@5.9.3)(yaml@2.8.3)
@@ -978,6 +984,9 @@ packages:
 
   '@types/mdurl@2.0.0':
     resolution: {integrity: sha512-RGdgjQUZba5p6QEFAVx2OGb8rQDL/cPRG7GiedRzMcJ1tYnUANBncjbSB1NRGwbvjcPeikRABz2nshyPk1bhWg==}
+
+  '@types/node-schedule@2.1.8':
+    resolution: {integrity: sha512-k00g6Yj/oUg/CDC+MeLHUzu0+OFxWbIqrFfDiLi6OPKxTujvpv29mHGM8GtKr7B+9Vv92FcK/8mRqi1DK5f3hA==}
 
   '@types/node@24.12.0':
     resolution: {integrity: sha512-GYDxsZi3ChgmckRT9HPU0WEhKLP08ev/Yfcq2AstjrDASOYCSXeyjDsHg4v5t4jOj7cyDX3vmprafKlWIG9MXQ==}
@@ -3485,6 +3494,10 @@ snapshots:
       '@types/unist': 3.0.3
 
   '@types/mdurl@2.0.0': {}
+
+  '@types/node-schedule@2.1.8':
+    dependencies:
+      '@types/node': 25.5.0
 
   '@types/node@24.12.0':
     dependencies:

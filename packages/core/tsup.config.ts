@@ -5,7 +5,8 @@ export default defineConfig({
     'src/index.ts',
     'src/playwright/index.ts',
     'src/fileManager/index.ts',
-    'src/agents/index.ts'
+    'src/agents/index.ts',
+    'src/scheduler/index.ts'
   ],
   format: ['cjs', 'esm'],
   dts: true,
