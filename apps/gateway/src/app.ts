@@ -2,10 +2,13 @@
 import express from "express";
 import cors from "cors"; // 可选，如果需要跨域
 import helmet from "helmet"; // 可选，安全头
+// import 'express-async-errors';
 import configRouter from "./routes/config";
 import chatRouter from "./routes/chat";
 import dotenv from "dotenv";
 import path from "path";
+import { responseFormatter } from "./middlewares/responseFormatter";
+import { errorHandler } from "./middlewares/errorHandler";
 
 dotenv.config(); // 加载 .env 文件
 
@@ -15,6 +18,7 @@ const app = express();
 app.use(helmet()); // 安全相关
 app.use(cors()); // 允许跨域
 app.use(express.json()); // 解析 JSON 请求体
+app.use(responseFormatter); // 统一响应格式化中间件
 
 // 健康检查端点
 app.get("/health", (req, res) => {
@@ -31,5 +35,8 @@ if (process.env.NODE_ENV === "production") {
   // 静态资源存放在 cli/server/static（Web 构建后复制过去）
   app.use("/web", express.static(path.join(__dirname, "static")));
 }
+
+// 错误处理中间件必须放在所有路由和中间件的最后
+app.use(errorHandler);
 
 export default app;

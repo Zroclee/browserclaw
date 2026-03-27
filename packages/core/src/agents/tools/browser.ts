@@ -71,11 +71,13 @@ export const extractPageStateTool = tool(
 
       const container = document.createElement('div');
       container.className = 'ai-label-container';
-      container.style.position = 'fixed';
+      container.style.position = 'absolute';
       container.style.top = '0';
       container.style.left = '0';
       container.style.zIndex = '9999999';
       container.style.pointerEvents = 'none';
+      container.style.width = '100%';
+      container.style.height = '100%';
       document.body.appendChild(container);
 
       elements.forEach((el) => {
@@ -84,11 +86,15 @@ export const extractPageStateTool = tool(
           const id = currentId++;
           el.setAttribute('idu-mark-id', id.toString());
 
+          // Calculate absolute position relative to the document
+          const absoluteTop = rect.top + window.scrollY;
+          const absoluteLeft = rect.left + window.scrollX;
+
           const label = document.createElement('div');
           label.innerText = `${id}`;
           label.style.position = 'absolute';
-          label.style.top = `${Math.max(0, rect.top)}px`;
-          label.style.left = `${Math.max(0, rect.left)}px`;
+          label.style.top = `${Math.max(0, absoluteTop)}px`;
+          label.style.left = `${Math.max(0, absoluteLeft)}px`;
           label.style.backgroundColor = 'transparent';
           label.style.color = 'red';
           label.style.fontSize = '12px';

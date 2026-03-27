@@ -1,6 +1,6 @@
 {
   "name": "zrocclaw",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "个人专属浏览器AI助手命令行工具",
   "keywords": [
     "zrocclaw",
@@ -25,18 +25,20 @@
   ],
   "scripts": {},
   "dependencies": {
-    "commander": "^12.1.0",
-    "pm2": "^5.4.3",
-    "cors": "^2.8.6",
-    "dotenv": "^17.3.1",
-    "express": "^5.2.1",
-    "helmet": "^8.1.0",
-    "http-proxy-middleware": "^3.0.5",
     "@langchain/core": "^1.1.34",
     "@langchain/langgraph": "^1.2.4",
     "@langchain/openai": "^1.3.0",
+    "commander": "^12.1.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-async-errors": "^3.1.1",
+    "helmet": "^8.1.0",
+    "http-proxy-middleware": "^3.0.5",
     "langchain": "^1.2.35",
+    "node-schedule": "^2.1.1",
     "playwright": "^1.58.2",
+    "pm2": "^5.4.3",
     "zod": "^4.3.6"
   }
 }

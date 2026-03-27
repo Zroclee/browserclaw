@@ -5,6 +5,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
 import { sessionModel } from '@zrocclaw/core/fileManager';
+import { BusinessError } from '../middlewares/errorHandler';
 
 const configDir = getConfigPath();
 const configFilePath = path.join(configDir, 'model.json');
@@ -13,16 +14,16 @@ const configFilePath = path.join(configDir, 'model.json');
 
 const router = Router();
 router.get('/', (req, res) => {
-  res.json({ status: "OK" });
+  res.success({ status: "OK" });
 });
 
-router.post('/stream', async (req, res) => {
+router.post('/stream', async (req, res, next) => {
   try {
     const query = req.body.query as string;
     const thread_id = req.body.thread_id as string;
     
     if (!query || !thread_id) {
-      return res.status(400).json({ error: "Missing query or thread_id in request body" });
+      throw new BusinessError(400, "Missing query or thread_id in request body");
     }
 
     const configContent = await fs.readFile(configFilePath, 'utf-8');
@@ -30,7 +31,7 @@ router.post('/stream', async (req, res) => {
     const modelConfig = config.defaultModel;
 
     if (!modelConfig) {
-      return res.status(500).json({ error: "defaultModel not found in config" });
+      throw new BusinessError(500, "defaultModel not found in config");
     }
 
     res.setHeader('Content-Type', 'text/event-stream');
@@ -45,48 +46,60 @@ router.post('/stream', async (req, res) => {
 
     res.end();
   } catch (error) {
-    console.error("Stream error:", error);
     if (!res.headersSent) {
-      res.status(500).json({ error: "Internal server error" });
+      next(error);
     } else {
+      console.error("Stream error after headers sent:", error);
       res.end();
     }
   }
 });
 
-router.get('/session', (req, res) => {
-  const isNew = req.query.new === 'true';
-  let sessionId = sessionModel.getSessionId();
-  if (!sessionId || isNew) {
-    sessionId = crypto.randomUUID();
-    sessionModel.setSessionId(sessionId);
+router.get('/session', (req, res, next) => {
+  try {
+    const isNew = req.query.new === 'true';
+    let sessionId = sessionModel.getSessionId();
+    if (!sessionId || isNew) {
+      sessionId = crypto.randomUUID();
+      sessionModel.setSessionId(sessionId);
+    }
+    res.success({ sessionId });
+  } catch (error) {
+    next(error);
   }
-  res.json({ sessionId });
 });
 
-router.post('/history', (req, res) => {
-  const { sessionId } = req.body;
-  if (!sessionId) {
-    return res.status(400).json({ error: "Missing sessionId" });
+router.post('/history', (req, res, next) => {
+  try {
+    const { sessionId } = req.body;
+    if (!sessionId) {
+      throw new BusinessError(400, "Missing sessionId");
+    }
+    
+    const data = sessionModel.getSessionData();
+    res.success({ data });
+  } catch (error) {
+    next(error);
   }
-  
-  const data = sessionModel.getSessionData();
-  res.json({ data });
 });
 
-router.post('/history/add', (req, res) => {
-  const { sessionId, id, role, content, ...rest } = req.body;
-  if (!sessionId) {
-    return res.status(400).json({ error: "Missing sessionId" });
-  }
-  if (!id || !role || !content) {
-    return res.status(400).json({ error: "Missing required SessionDataItem fields (id, role, content)" });
-  }
+router.post('/history/add', (req, res, next) => {
+  try {
+    const { sessionId, id, role, content, ...rest } = req.body;
+    if (!sessionId) {
+      throw new BusinessError(400, "Missing sessionId");
+    }
+    if (!id || !role || !content) {
+      throw new BusinessError(400, "Missing required SessionDataItem fields (id, role, content)");
+    }
 
-  const item = { id, role, content, ...rest };
-  sessionModel.addSessionItem(item);
-  
-  res.json({ success: true });
+    const item = { id, role, content, ...rest };
+    sessionModel.addSessionItem(item);
+    
+    res.success({ success: true });
+  } catch (error) {
+    next(error);
+  }
 });
 
 export default router;

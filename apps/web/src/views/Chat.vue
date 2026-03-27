@@ -48,7 +48,7 @@ const fetchSessionId = async (isNew: boolean = false) => {
     const params = isNew ? { new: true } : {};
     const data: any = await request.get('/chat/session', { params });
     
-    if (data.sessionId) {
+    if (data && data.sessionId) {
       curChatId.value = data.sessionId;
     } else {
       curChatId.value = generateId();

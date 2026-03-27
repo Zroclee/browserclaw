@@ -22,7 +22,8 @@ export default defineConfig({
     '@langchain/openai',
     '@langchain/langgraph',
     'zod',
-    'chromium-bidi'
+    'chromium-bidi',
+    'node-schedule',
   ],
   onSuccess: 'mkdir -p ../cli/server && cp dist/server.js ../cli/server/server.js',
 });

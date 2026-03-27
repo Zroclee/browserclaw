@@ -131,7 +131,7 @@ const openModal = async (skill?: Skill) => {
 
     try {
       const res: any = await apiGetSkillDetail(skill.id);
-      formData.content = res.content || '';
+      formData.content = res?.content || '';
     } catch (error) {
       console.error('Failed to load skill detail', error);
       formData.content = '';

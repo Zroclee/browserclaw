@@ -125,8 +125,14 @@ const formData = reactive<Omit<ModelConfig, 'id'>>({
 const loadModels = async () => {
   try {
     const res: any = await apiGetModel();
-    models.value = Array.isArray(res.models) ? res.models : [];
-    defaultModel.value = res.defaultModel || null;
+    // 由于拦截器已经返回了 data 层，直接使用 res 即可
+    if (res) {
+      models.value = Array.isArray(res.models) ? res.models : [];
+      defaultModel.value = res.defaultModel || null;
+    } else {
+      models.value = [];
+      defaultModel.value = null;
+    }
   } catch (error) {
     console.error('Failed to fetch models config on mount', error);
   }

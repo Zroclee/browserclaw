@@ -3,11 +3,12 @@ import { getConfigPath, getWorkspacePath, getSkillsPath } from '@zrocclaw/core/f
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
+import { BusinessError } from '../middlewares/errorHandler';
 
 const router = Router();
 
 router.get('/', (req, res) => {
-  res.json({ configPath: getConfigPath()});
+  res.success({ configPath: getConfigPath() });
 });
 
 const configDir = getConfigPath();
@@ -33,22 +34,21 @@ async function writeModelConfig(config: any) {
 }
 
 // 4. 查询接口 get
-router.get('/model', async (req, res) => {
+router.get('/model', async (req, res, next) => {
   try {
     const config = await readModelConfig();
     if (Object.keys(config).length === 0) {
       await writeModelConfig({});
-      return res.json({});
+      return res.success({});
     }
-    res.json(config);
+    res.success(config);
   } catch (error) {
-    console.error('获取模型失败:', error);
-    res.status(500).json({ error: '获取模型失败' });
+    next(error);
   }
 });
 
 // 1. 新增接口 post
-router.post('/model', async (req, res) => {
+router.post('/model', async (req, res, next) => {
   try {
     const { modelName, provider, apiKey, baseURL } = req.body;
     const newModel = {
@@ -76,19 +76,18 @@ router.post('/model', async (req, res) => {
     await writeModelConfig(config);
     
     // 返回带ID的完整数据
-    res.json(newModel);
+    res.success(newModel);
   } catch (error) {
-    console.error('新增模型失败:', error);
-    res.status(500).json({ error: '新增模型失败' });
+    next(error);
   }
 });
 
 // 2. 编辑接口 post
-router.post('/model/edit', async (req, res) => {
+router.post('/model/edit', async (req, res, next) => {
   try {
     const modelData = req.body;
     if (!modelData || !modelData.id) {
-      return res.status(400).json({ error: '缺少模型ID' });
+      throw new BusinessError(400, '缺少模型ID');
     }
 
     const config = await readModelConfig();
@@ -98,7 +97,7 @@ router.post('/model/edit', async (req, res) => {
 
     const index = config.models.findIndex((m: any) => m.id === modelData.id);
     if (index === -1) {
-      return res.status(404).json({ error: '模型不存在' });
+      throw new BusinessError(404, '模型不存在');
     }
 
     // 替换模型数据
@@ -110,19 +109,18 @@ router.post('/model/edit', async (req, res) => {
     }
 
     await writeModelConfig(config);
-    res.json(config.models[index]);
+    res.success(config.models[index]);
   } catch (error) {
-    console.error('编辑模型失败:', error);
-    res.status(500).json({ error: '编辑模型失败' });
+    next(error);
   }
 });
 
 // 3. 删除接口 post
-router.post('/model/delete', async (req, res) => {
+router.post('/model/delete', async (req, res, next) => {
   try {
     const { id } = req.body;
     if (!id) {
-      return res.status(400).json({ error: '缺少模型ID' });
+      throw new BusinessError(400, '缺少模型ID');
     }
 
     const config = await readModelConfig();
@@ -134,7 +132,7 @@ router.post('/model/delete', async (req, res) => {
     config.models = config.models.filter((m: any) => m.id !== id);
 
     if (config.models.length === initialLength) {
-      return res.status(404).json({ error: '模型不存在' });
+      throw new BusinessError(404, '模型不存在');
     }
 
     // 如果删除的是默认模型，清除或更新defaultModel
@@ -143,19 +141,18 @@ router.post('/model/delete', async (req, res) => {
     }
 
     await writeModelConfig(config);
-    res.json({ success: true, message: '删除成功' });
+    res.success({ success: true }, '删除成功');
   } catch (error) {
-    console.error('删除模型失败:', error);
-    res.status(500).json({ error: '删除模型失败' });
+    next(error);
   }
 });
 
 // 5. 设置defaultmodel接口 post
-router.post('/model/default', async (req, res) => {
+router.post('/model/default', async (req, res, next) => {
   try {
     const { id } = req.body;
     if (!id) {
-      return res.status(400).json({ error: '缺少模型ID' });
+      throw new BusinessError(400, '缺少模型ID');
     }
 
     const config = await readModelConfig();
@@ -165,16 +162,15 @@ router.post('/model/default', async (req, res) => {
 
     const model = config.models.find((m: any) => m.id === id);
     if (!model) {
-      return res.status(404).json({ error: '模型不存在' });
+      throw new BusinessError(404, '模型不存在');
     }
 
     config.defaultModel = model; // 写入defaultModel完整对象
     await writeModelConfig(config);
     
-    res.json({ success: true, defaultModel: config.defaultModel });
+    res.success({ success: true, defaultModel: config.defaultModel });
   } catch (error) {
-    console.error('设置默认模型失败:', error);
-    res.status(500).json({ error: '设置默认模型失败' });
+    next(error);
   }
 });
 
@@ -202,26 +198,25 @@ async function writeSkillsConfig(config: any) {
 }
 
 // 1. 获取技能列表接口 get
-router.get('/skills', async (req, res) => {
+router.get('/skills', async (req, res, next) => {
   try {
     try {
       await fs.access(workspaceSkillsPath);
     } catch (e: any) {
       if (e.code === 'ENOENT') {
         await writeSkillsConfig([]);
-        return res.json([]);
+        return res.success([]);
       }
     }
     const config = await readSkillsConfig();
-    res.json(config);
+    res.success(config);
   } catch (error) {
-    console.error('获取技能列表失败:', error);
-    res.status(500).json({ error: '获取技能列表失败' });
+    next(error);
   }
 });
 
 // 2. 新增技能接口 post
-router.post('/skills', async (req, res) => {
+router.post('/skills', async (req, res, next) => {
   try {
     const { name, summary, content } = req.body;
     const id = crypto.randomUUID();
@@ -234,7 +229,7 @@ router.post('/skills', async (req, res) => {
 
     const skills = await readSkillsConfig();
     if (!Array.isArray(skills)) {
-      throw new Error('skills.json 格式错误');
+      throw new BusinessError(500, 'skills.json 格式错误');
     }
     
     skills.unshift(newSkill);
@@ -245,29 +240,28 @@ router.post('/skills', async (req, res) => {
     const mdPath = path.join(skillsDir, `${id}.md`);
     await fs.writeFile(mdPath, content || '', 'utf-8');
 
-    res.json(newSkill);
+    res.success(newSkill);
   } catch (error) {
-    console.error('新增技能失败:', error);
-    res.status(500).json({ error: '新增技能失败' });
+    next(error);
   }
 });
 
 // 3. 编辑技能接口 post
-router.post('/skills/edit', async (req, res) => {
+router.post('/skills/edit', async (req, res, next) => {
   try {
     const { id, name, summary, content } = req.body;
     if (!id) {
-      return res.status(400).json({ error: '缺少技能ID' });
+      throw new BusinessError(400, '缺少技能ID');
     }
 
     const skills = await readSkillsConfig();
     if (!Array.isArray(skills)) {
-      throw new Error('skills.json 格式错误');
+      throw new BusinessError(500, 'skills.json 格式错误');
     }
 
     const index = skills.findIndex((s: any) => s.id === id);
     if (index === -1) {
-      return res.status(404).json({ error: '技能不存在' });
+      throw new BusinessError(404, '技能不存在');
     }
 
     skills[index] = { ...skills[index], name, summary };
@@ -278,31 +272,30 @@ router.post('/skills/edit', async (req, res) => {
     const mdPath = path.join(skillsDir, `${id}.md`);
     await fs.writeFile(mdPath, content || '', 'utf-8');
 
-    res.json(skills[index]);
+    res.success(skills[index]);
   } catch (error) {
-    console.error('编辑技能失败:', error);
-    res.status(500).json({ error: '编辑技能失败' });
+    next(error);
   }
 });
 
 // 4. 删除技能接口 post
-router.post('/skills/delete', async (req, res) => {
+router.post('/skills/delete', async (req, res, next) => {
   try {
     const { id } = req.body;
     if (!id) {
-      return res.status(400).json({ error: '缺少技能ID' });
+      throw new BusinessError(400, '缺少技能ID');
     }
 
     let skills = await readSkillsConfig();
     if (!Array.isArray(skills)) {
-      throw new Error('skills.json 格式错误');
+      throw new BusinessError(500, 'skills.json 格式错误');
     }
 
     const initialLength = skills.length;
     skills = skills.filter((s: any) => s.id !== id);
 
     if (skills.length === initialLength) {
-      return res.status(404).json({ error: '技能不存在' });
+      throw new BusinessError(404, '技能不存在');
     }
 
     await writeSkillsConfig(skills);
@@ -317,35 +310,33 @@ router.post('/skills/delete', async (req, res) => {
       }
     }
 
-    res.json({ success: true, message: '删除成功' });
+    res.success({ success: true }, '删除成功');
   } catch (error) {
-    console.error('删除技能失败:', error);
-    res.status(500).json({ error: '删除技能失败' });
+    next(error);
   }
 });
 
 // 5. 获取技能详情接口 post
-router.post('/skills/detail', async (req, res) => {
+router.post('/skills/detail', async (req, res, next) => {
   try {
     const { id } = req.body;
     if (!id) {
-      return res.status(400).json({ error: '缺少技能ID' });
+      throw new BusinessError(400, '缺少技能ID');
     }
 
     const mdPath = path.join(skillsDir, `${id}.md`);
     try {
       await fs.access(mdPath);
       const content = await fs.readFile(mdPath, 'utf-8');
-      res.json({ content });
+      res.success({ content });
     } catch (e: any) {
       if (e.code === 'ENOENT') {
-        return res.status(404).json({ error: '技能文件不存在' });
+        throw new BusinessError(404, '技能文件不存在');
       }
       throw e;
     }
   } catch (error) {
-    console.error('获取技能详情失败:', error);
-    res.status(500).json({ error: '获取技能详情失败' });
+    next(error);
   }
 });
 
