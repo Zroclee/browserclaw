@@ -141,7 +141,6 @@ vite.config.ts.timestamp-*
 # turbo cache
 .turbo
 .DS_Store
-.trae/*
 apps/gateway/src/static/*
 
 
